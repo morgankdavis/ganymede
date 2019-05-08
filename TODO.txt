@@ -1,0 +1,22 @@
+Ganymede
+
+"macOS-inspired application instance management and workspace behavior."
+
+	
+FEATURES:
+
+	- Single instance apps with assigned workspaces similar to macOS
+
+TODO:
+
+	Catalog sources and behaviros of app launches/single instance hooks
+		Wnck windows, apps and kernel PROC_EVENT
+
+	Need XDG wrapper?  Need launch wrapper?
+
+	XFCE: How is it calculating positions/manipulating windows?
+
+	Devilpie: act as a daemon?
+		-> Make a service?
+
+	Add to AUR
