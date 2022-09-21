@@ -2,24 +2,24 @@
 // Created by mkd on 9/16/22.
 //
 
-#include "SplitManager.h"
+#include "WindowController.h"
 
 
 using namespace ganymede;
 using namespace std;
 
 
-SplitManager::SplitManager() {}
+WindowController::WindowController() {}
 
-void SplitManager::position(WnckWindow& window,
-							WnckScreen& screen,
-							unsigned xDivision,
-							unsigned xDivisionPosition,
-							unsigned xDivisionOffset,
-							unsigned yDivision,
-							unsigned yDivisionPosition,
-							unsigned yDivisionOffset) {
-	printf("SplitManager::position()\n");
+void WindowController::position(WnckWindow& window,
+								WnckScreen& screen,
+								unsigned widthDivision,
+								unsigned xDivision,
+								unsigned xOffset,
+								unsigned heightDivision,
+								unsigned yDivision,
+								unsigned yOffset) {
+	printf("WindowController::position()\n");
 
 	static bool set = true;
 

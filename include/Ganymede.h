@@ -8,7 +8,7 @@
 #include <libwnck/libwnck.h>
 
 #include "DBusServer.h"
-#include "SplitManager.h"
+#include "WindowController.h"
 
 //struct WnckScreen;
 //struct WnckWindow;
@@ -17,7 +17,7 @@
 namespace ganymede {
 
 
-	//class SplitManager;
+	//class WindowController;
 
 
 	class Ganymede {
@@ -28,7 +28,7 @@ namespace ganymede {
 
 		int start(int argc, char **argv);
 
-		SplitManager& getSplitManager();
+		WindowController& getSplitManager();
 		bool isMainLoopRunning();
 
 	protected:
@@ -60,7 +60,7 @@ namespace ganymede {
 		GMainLoop *_mainLoop;
 
 		std::unique_ptr<DBusServer>	_dbusServer;
-		std::unique_ptr<SplitManager> _splitManager;
+		std::unique_ptr<WindowController> _windowController;
 	};
 }
 

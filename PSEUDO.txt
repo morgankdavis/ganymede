@@ -1,0 +1,133 @@
+
+tile(
+  unsigned widthDivision,
+  unsigned xDivision
+  unsigned xOffset,
+  unsigned heightDivision,
+  unsigned yDivision,
+  unsigned yOffset) {}
+  
+maximize(FLAGS) {}
+
+fill(FLAGS) {} -> tile()
+
+expand(FLAGS) {}
+
+move(FLAGS, int units) {}
+
+toggleFullscreen() {}
+
+toggleDeskop() {}
+
+
+
+FLAGS {
+	NONE,
+	VERTICAL,
+	HORIZONTAL,
+	UP,
+	DOWN,
+	LEFT,
+	RIGHT
+}
+
+
+
+#1
+-------------------
+tile(	2, 4, 1,
+	1, 0, 0	)
+
+#2
+-------------------
+tile(	2, 2, 1,
+	1, 0, 0	)
+
+#3
+-------------------
+tile(	3, 3, 0,
+	1, 0, 0	)
+
+#4
+-------------------
+tile(	3, 3, 2,
+	1, 0, 0	)
+
+#5
+-------------------
+tile(	4, 4, 1,
+	1, 0, 0	)
+
+#6
+-------------------
+tile(	4, 4, 3,
+	1, 0, 0	)
+
+#7
+-------------------
+tile(	3, 3, 1,
+	3, 3, 0	)
+
+#8
+-------------------
+tile(	3, 3, 2,
+	3, 3, 0	)
+
+#9
+-------------------
+tile(	3, 3, 1,
+	3, 3, 1	)
+
+#10
+-------------------
+tile(	3, 3, 2,
+	3, 3, 2	)
+
+#11
+-------------------
+tile(	2, 2, 1,
+	2, 2, 0	)
+
+#12
+-------------------
+tile(	2, 2, 0,
+	2, 2, 1	)
+
+#13
+-------------------
+tile(	1, 0, 0,
+	2, 2, 1	)
+
+WM max vert
+-------------------
+
+WM max horiz
+-------------------
+
+WM max
+-------------------
+
+WM fullscreen
+-------------------
+
+Fill vert
+-------------------
+
+Fill horiz
+-------------------
+
+Fill max
+-------------------
+
+Expand horiz, vert, up, down, left, right
+-------------------
+
+Move up, down, left, right
+-------------------
+
+WM toggle boarder?
+-------------------
+
+Show desktop
+-------------------
+

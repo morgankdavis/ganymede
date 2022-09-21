@@ -29,11 +29,11 @@ using namespace ganymede;
 Ganymede::Ganymede() {
 
 	_dbusServer = make_unique<DBusServer>();
-	_splitManager = make_unique<SplitManager>();
+	_windowController = make_unique<WindowController>();
 }
 
-SplitManager& Ganymede::getSplitManager() {
-	return *_splitManager;
+WindowController& Ganymede::getSplitManager() {
+	return *_windowController;
 };
 
 bool Ganymede::isMainLoopRunning() {
@@ -200,6 +200,11 @@ int Ganymede::start(int argc, char **argv) {
 
 	for (int i=0; i<num_screens; ++i) {
 		WnckScreen* screen = wnck_screen_get(i);
+
+		int width = wnck_screen_get_width(screen);
+		int height = wnck_screen_get_height(screen);
+		printf("width: %d, height: %d\n", width, height);
+
 		g_signal_connect(screen, "window-opened", (GCallback)window_opened_cb, this);
 		g_signal_connect(screen, "window-closed", (GCallback)window_opened_cb, this);
 		g_signal_connect(screen, "application-opened", (GCallback)application_opened_cb, this);

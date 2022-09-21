@@ -1,0 +1,36 @@
+Ganymede
+	Compute maximum bounded workspace area? (inside all panels)
+	TILING
+    	Position alg(
+        	Active window handle
+        	Width division
+        	X division
+        	X offset
+        	Height division
+        	Y division
+        	Y offset)
+        	-> ability to override final output rect for special cases (FF)
+				(put in text file?)
+		Move center, left, right, up, down (?)
+		WM max vert
+		WM max horiz
+		WM max
+		WM fullscreen
+		Fill vert
+		Fill horiz
+		Fill max
+		Expand horiz, vert, up, down, left, right
+		Move up, down, left, right
+		WM toggle boarder?
+		Hide
+		Toggle show desktop
+	WORKSPACES
+		Activate
+		Send to
+		Pull to
+    Capture key commands and/or {dbus server}
+		Dbug server: https://github.com/bratsche/glib/blob/master/gio/tests/gdbus-example-server.c
+    
+Setup Thunar keyboard shortcuts
+
+
