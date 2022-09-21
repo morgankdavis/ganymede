@@ -14,6 +14,7 @@ include_directories("/usr/include/gtk-3.0/")
 include_directories("/usr/include/glib-2.0/")
 include_directories("/usr/lib/glib-2.0/include/")
 include_directories("/usr/include/pango-1.0/")
+include_directories("/usr/include/harfbuzz/")
 include_directories("/usr/include/cairo/")
 include_directories("/usr/include/gdk-pixbuf-2.0/")
 include_directories("/usr/include/libwnck-3.0/")
@@ -54,7 +55,7 @@ file(GLOB SOURCES src/*.c*)
 add_executable(ganymede ${HEADERS} ${SOURCES})
 
 include_directories(include)
-target_link_libraries(ganymede g glib-2.0 gtk-3 gtkmm-3.0 gdk-3 gdk_pixbuf-2.0 gobject-2.0 wnck-3)
+target_link_libraries(ganymede g glib-2.0 gio-2.0 gtk-3 gtkmm-3.0 gdk-3 gdk_pixbuf-2.0 gobject-2.0 wnck-3)
 
 #-L/usr/lib/python3.5/config-3.5m-arm-linux-gnueabihf -L/usr/lib -lpython3.5m -lpthread -#ldl  -lutil -lm  -Xlinker -export-dynamic -Wl,-O1 -Wl,-Bsymbolic-functions
 

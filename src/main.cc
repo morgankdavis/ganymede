@@ -4,5 +4,5 @@
 
 int main(int argc, char **argv) {
 
-	return std::make_shared<ganymede::Ganymede>()->start(argc, argv);
+	return std::make_unique<ganymede::Ganymede>()->start(argc, argv);
 }

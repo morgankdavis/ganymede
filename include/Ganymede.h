@@ -7,11 +7,18 @@
 #include <gdk/gdkx.h>
 #include <libwnck/libwnck.h>
 
+#include "DBusServer.h"
+#include "SplitManager.h"
+
 //struct WnckScreen;
 //struct WnckWindow;
 
 
 namespace ganymede {
+
+
+	//class SplitManager;
+
 
 	class Ganymede {
 
@@ -20,6 +27,9 @@ namespace ganymede {
 		Ganymede();
 
 		int start(int argc, char **argv);
+
+		SplitManager& getSplitManager();
+		bool isMainLoopRunning();
 
 	protected:
 
@@ -46,8 +56,11 @@ namespace ganymede {
 		static void debugPrintApplicationInfo(WnckApplication* application); // should be const
 		static void debugPrintWindowInfo(WnckWindow* window); // should be const
 
-		std::chrono::system_clock::time_point m_startTime;
-		GMainLoop *m_mainLoop;
+		std::chrono::system_clock::time_point _startTime;
+		GMainLoop *_mainLoop;
+
+		std::unique_ptr<DBusServer>	_dbusServer;
+		std::unique_ptr<SplitManager> _splitManager;
 	};
 }
 

@@ -3,6 +3,7 @@
 
 #include "Ganymede.h"
 
+
 /*
 #include <stdlib.h>
 #include <glib.h>
@@ -18,22 +19,31 @@
 
 #define VERSION "0.1" // MOVE
 
-#define START_DELAY 0.5 // this is lame
 
 
-using namespace ganymede;
 using namespace std;
+using namespace ganymede;
 
 
 
 Ganymede::Ganymede() {
 
+	_dbusServer = make_unique<DBusServer>();
+	_splitManager = make_unique<SplitManager>();
+}
+
+SplitManager& Ganymede::getSplitManager() {
+	return *_splitManager;
+};
+
+bool Ganymede::isMainLoopRunning() {
+	return g_main_loop_is_running(_mainLoop);
 }
 
 
 float Ganymede::runTime() {
 	auto now = chrono::high_resolution_clock::now();
-	return (chrono::duration<float>(now - m_startTime)).count();
+	return (chrono::duration<float>(now - _startTime)).count();
 }
 
 void Ganymede::debugPrintApplicationInfo(WnckApplication* application) {
@@ -63,11 +73,15 @@ void Ganymede::window_opened_cb(
 		WnckScreen* screen,
 		WnckWindow* window,
 		Ganymede* ganymede) {
+	printf("window_opened_cb()\n");
+	printf("opened class group name: %s\n", wnck_window_get_class_group_name(window));
 
-	if (ganymede->runTime() > START_DELAY) {
-		printf("window_opened_cb()\n");
+	if (ganymede->isMainLoopRunning()) {
+
+
 		ganymede->debugPrintWindowInfo(window);
 
+		//ganymede->getSplitManager().position(*window, *screen, 0, 0, 0, 0, 0, 0);
 
 //		wnck_window_set_window_type(window, WNCK_WINDOW_MENU);
 //		typedef enum
@@ -92,16 +106,22 @@ void Ganymede::window_opened_cb(
 //		void           wnck_window_move_to_workspace (WnckWindow    *window,
 //													  WnckWorkspace *space);
 	}
+	else {
+		printf("Ignoring event during initialization.\n");
+	}
 }
 
 void Ganymede::window_closed_cb(
 		WnckScreen* screen,
 		WnckWindow* window,
 		Ganymede* ganymede) {
+	printf("window_closed_cb()\n");
 
-	if (ganymede->runTime() > START_DELAY) {
-		printf("window_closed_cb()\n");
+	if (ganymede->isMainLoopRunning()) {
 		ganymede->debugPrintWindowInfo(window);
+	}
+	else {
+		printf("Ignoring event during initialization.\n");
 	}
 }
 
@@ -109,10 +129,13 @@ void Ganymede::application_opened_cb(
 		WnckScreen* screen,
 		WnckApplication* application,
 		Ganymede* ganymede) {
+	printf("application_opened_cb()\n");
 
-	if (ganymede->runTime() > START_DELAY) {
-		printf("application_opened_cb()\n");
+	if (ganymede->isMainLoopRunning()) {
 		ganymede->debugPrintApplicationInfo(application);
+	}
+	else {
+		printf("Ignoring event during initialization.\n");
 	}
 }
 
@@ -120,10 +143,13 @@ void Ganymede::application_closed_cb(
 		WnckScreen* screen,
 		WnckApplication* application,
 		Ganymede* ganymede) {
+	printf("application_closed_cb()\n");
 
-	if (ganymede->runTime() > START_DELAY) {
-		printf("application_closed_cb()\n");
+	if (ganymede->isMainLoopRunning()) {
 		ganymede->debugPrintApplicationInfo(application);
+	}
+	else {
+		printf("Ignoring event during initialization.\n");
 	}
 }
 
@@ -132,7 +158,9 @@ void Ganymede::application_closed_cb(
 
 int Ganymede::start(int argc, char **argv) {
 
-	m_startTime = chrono::high_resolution_clock::now();
+	// https://developer-old.gnome.org/libwnck/stable/getting-started.html
+
+	_startTime = chrono::high_resolution_clock::now();
 
 	printf("Hello from Ganymede!\n");
 
@@ -164,9 +192,12 @@ int Ganymede::start(int argc, char **argv) {
 
 	//WnckWorkspace* workspace = nullptr;
 
+	_mainLoop = g_main_loop_new(nullptr, true);
+
 	// TODO: check this periodically (example: connect laptop to external displays)
 	int num_screens = gdk_display_get_n_screens(gdk_display_get_default());
 	printf("num_screens: %d\n", num_screens);
+
 	for (int i=0; i<num_screens; ++i) {
 		WnckScreen* screen = wnck_screen_get(i);
 		g_signal_connect(screen, "window-opened", (GCallback)window_opened_cb, this);
@@ -175,10 +206,14 @@ int Ganymede::start(int argc, char **argv) {
 		g_signal_connect(screen, "application-closed", (GCallback)application_closed_cb, this);
 
 		//workspace = wnck_screen_get_workspace(screen, 2);
+
+		wnck_screen_force_update(screen);
 	}
 
-	m_mainLoop = g_main_loop_new(nullptr, true);
-	g_main_loop_run(m_mainLoop);
+	printf("starting loop\n");
+
+	g_main_loop_run(_mainLoop);
+	g_main_loop_unref(_mainLoop);
 
 	return 0;
 }
