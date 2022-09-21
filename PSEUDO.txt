@@ -13,7 +13,11 @@ fill(FLAGS) {} -> tile()
 
 expand(FLAGS) {}
 
+snap(FLAGS) {}
+
 move(FLAGS, int units) {}
+
+hide() {}
 
 toggleFullscreen() {}
 

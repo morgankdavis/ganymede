@@ -22,6 +22,7 @@ Ganymede
 		Expand horiz, vert, up, down, left, right
 		Move up, down, left, right
 		WM toggle boarder?
+		Snap (up, down, left, right, //corners)
 		Hide
 		Toggle show desktop
 	WORKSPACES
