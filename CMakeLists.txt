@@ -52,7 +52,7 @@ file(GLOB HEADERS include/*.h)
 file(GLOB SOURCES src/*.c*)
 
 
-add_executable(ganymede ${HEADERS} ${SOURCES})
+add_executable(ganymede ${HEADERS} ${SOURCES} include/Types.h)
 
 include_directories(include)
 target_link_libraries(ganymede g glib-2.0 gio-2.0 gtk-3 gtkmm-3.0 gdk-3 gdk_pixbuf-2.0 gobject-2.0 wnck-3)

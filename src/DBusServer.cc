@@ -14,16 +14,26 @@ using namespace std;
 using namespace ganymede;
 
 
-// dbus-send --session --print-reply --type=method_call --dest=org.gtk.GDBus.Ganymede /org/gtk/GDBus/Ganymede org.gtk.GDBus.Ganymede.DoSomething int32:3
+// test: dbus-send --session --print-reply --type=method_call --dest=net.mkd.Ganymede /net/mkd/Ganymede net.mkd.Ganymede.DoSomething int32:1
+// format strings: https://docs.gtk.org/glib/gvariant-format-strings.html
 static const gchar introspectionXML[] =
 		"<node>"
-		"  <interface name='org.gtk.GDBus.Ganymede'>"
-		"    <annotation name='org.gtk.GDBus.Annotation' value='OnInterface'/>"
-		"    <annotation name='org.gtk.GDBus.Annotation' value='AlsoOnInterface'/>"
+		"  <interface name='net.mkd.Ganymede'>"
+		"    <annotation name='net.mkd.Annotation' value='OnInterface'/>"
+		"    <annotation name='net.mkd.Annotation' value='AlsoOnInterface'/>"
 		"    <method name='DoSomething'>"
-		"      <annotation name='org.gtk.GDBus.Annotation' value='OnMethod'/>"
+		"      <annotation name='net.mkd.Annotation' value='OnMethod'/>"
 		"      <arg type='i' name='action' direction='in'/>"
 		"      <arg type='i' name='response' direction='out'/>"
+		"    </method>"
+		"    <method name='Tile'>"
+		"      <annotation name='net.mkd.Annotation' value='OnMethod'/>"
+		"      <arg type='u' name='widthDivision' direction='in'/>"
+		"      <arg type='u' name='xDivision' direction='in'/>"
+		"      <arg type='u' name='xOffset' direction='in'/>"
+		"      <arg type='u' name='heightDivision' direction='in'/>"
+		"      <arg type='u' name='yDivision' direction='in'/>"
+		"      <arg type='u' name='yOffset' direction='in'/>"
 		"    </method>"
 		"  </interface>"
 		"</node>";
@@ -64,31 +74,6 @@ static gboolean handle_set_property(GDBusConnection* connection,
 									GError** error,
 									gpointer user_data);
 
-
-
-DBusServer::DBusServer() {
-	printf("DBusServer()\n");
-
-	guint owner_id;
-
-	g_type_init();
-
-	_introspectionData = g_dbus_node_info_new_for_xml(introspectionXML, NULL);
-
-	owner_id = g_bus_own_name(G_BUS_TYPE_SESSION,
-							  "org.gtk.GDBus.Ganymede",
-							  G_BUS_NAME_OWNER_FLAGS_NONE,
-							  on_bus_acquired,
-							  on_name_acquired,
-							  on_name_lost,
-							  this,
-							  NULL);
-}
-
-GDBusNodeInfo* DBusServer::GetIntrospectionData() {
-	return _introspectionData;
-}
-
 static void on_bus_acquired(GDBusConnection* connection,
 							const gchar* name,
 							gpointer user_data) {
@@ -107,17 +92,12 @@ static void on_bus_acquired(GDBusConnection* connection,
 			};
 
 	registration_id = g_dbus_connection_register_object(connection,
-														"/org/gtk/GDBus/Ganymede",
+														"/net/mkd/Ganymede",
 														manager->GetIntrospectionData()->interfaces[0],
 														&interface_vtable,
-														NULL,  /* user_data */
+														user_data,  /* user_data */
 														NULL,  /* user_data_free_func */
 														NULL); /* GError** */
-
-	/* swap value of properties Foo and Bar every two seconds */
-//	g_timeout_add_seconds(2,
-//						  on_timeout_cb,
-//						  connection);
 }
 
 static void on_name_acquired(GDBusConnection* connection,
@@ -133,10 +113,6 @@ static void on_name_lost(
 	printf("on_name_lost()\n");
 }
 
-//static gboolean on_timeout_cb(gpointer user_data) {
-//	printf("on_timeout_cb()\n");
-//}
-
 static void handle_method_call(GDBusConnection* connection,
 							   const gchar* sender,
 							   const gchar* object_path,
@@ -147,7 +123,80 @@ static void handle_method_call(GDBusConnection* connection,
 							   gpointer user_data) {
 	printf("handle_method_call()\n");
 
-	if (g_strcmp0(method_name, "DoSomething") == 0) {
+	if (g_strcmp0(method_name, "Tile") == 0) {
+
+		DBusServer* server = (DBusServer*)user_data;
+
+		GError* local_error;
+
+		guint32 widthDivision, xDivision, xOffset, heightDivision, yDivision, yOffset;
+
+		g_variant_get(parameters, "(uuuuuu)",
+					  &widthDivision, &xDivision, &xOffset, &heightDivision, &yDivision, &yOffset);
+		printf("widthDivision: %u\nxDivision: %u\nxOffset: %u\nheightDivision: %u\nyDivision: %u\nyOffset: %u\n",
+			   widthDivision, xDivision, xOffset, heightDivision, yDivision, yOffset);
+
+		if (server->tileCallback()) {
+			(server->tileCallback())(*server, widthDivision, xDivision, xOffset, heightDivision, yDivision, yOffset);
+		}
+
+//		g_variant_get(parameters, "(u)", &widthDivision);
+//		printf("widthDivision: %u\n", widthDivision);
+//
+//		g_variant_get(parameters, "(u)", &xDivision);
+//		printf("xDivision: %u\n", xDivision);
+//
+//		g_variant_get(parameters, "(u)", &xOffset);
+//		printf("xOffset: %u\n", xOffset);
+//
+//		g_variant_get(parameters, "(u)", &heightDivision);
+//		printf("heightDivision: %u\n", heightDivision);
+//
+//		g_variant_get(parameters, "(u)", &yDivision);
+//		printf("yDivision: %u\n", yDivision);
+//
+//		g_variant_get(parameters, "(u)", &yOffset);
+//		printf("yOffset: %u\n", yOffset);
+
+
+//		WnckScreen* screen = wnck_screen_get_default();
+//		WnckWindow* activeWin = wnck_screen_get_active_window(screen);
+//		printf("active win class group: %s\n", wnck_window_get_class_group_name(activeWin));
+//
+//		switch (action) {
+//			case 0:
+//				printf("SETTING GEOMETRY\n");
+//
+//				if (wnck_window_is_fullscreen(activeWin)) wnck_window_set_fullscreen(activeWin, false);
+//				if (wnck_window_is_maximized(activeWin)) wnck_window_unmaximize(activeWin);
+//
+//				wnck_window_set_geometry(activeWin,
+//										 WNCK_WINDOW_GRAVITY_CURRENT,
+//										 (WnckWindowMoveResizeMask)
+//												 (WNCK_WINDOW_CHANGE_X
+//												  | WNCK_WINDOW_CHANGE_Y
+//												  | WNCK_WINDOW_CHANGE_WIDTH
+//												  | WNCK_WINDOW_CHANGE_HEIGHT),
+//										 128, 128, 480, 240);
+//				break;
+//			case 1:
+//				printf("SETTING GEOMETRY\n");
+//
+//				int activeX, activeY, activeW, activeH;
+//				wnck_window_get_geometry(activeWin, &activeX, &activeY, &activeW, &activeH);
+//				printf("%d %d %d %d\n", activeX, activeY, activeW, activeH);
+//				break;
+//			case 2:
+//				break;
+//			default:
+//				break;
+//		}
+//
+//		//g_free(actionAsString);
+//
+//		g_dbus_method_invocation_return_value(invocation, g_variant_new ("(i)", 0));
+	}
+	else if (g_strcmp0(method_name, "DoSomething") == 0) {
 
 		GError* local_error;
 		gint32 action;
@@ -189,17 +238,6 @@ static void handle_method_call(GDBusConnection* connection,
 				break;
 		}
 
-//		local_error = NULL;
-//		g_dbus_connection_emit_signal (connection,
-//									   NULL,
-//									   object_path,
-//									   interface_name,
-//									   "VelocityChanged",
-//									   g_variant_new ("(ds)",
-//													  speed_in_mph,
-//													  speed_as_string),
-//									   &local_error);
-//		g_assert_no_error (local_error);
 		g_free(actionAsString);
 
 		g_dbus_method_invocation_return_value(invocation, g_variant_new ("(i)", 0));
@@ -228,3 +266,105 @@ static gboolean handle_set_property(GDBusConnection* connection,
 }
 
 
+DBusServer::DBusServer() {
+	printf("DBusServer()\n");
+
+	guint owner_id;
+
+	g_type_init();
+
+	_introspectionData = g_dbus_node_info_new_for_xml(introspectionXML, NULL);
+
+	owner_id = g_bus_own_name(G_BUS_TYPE_SESSION,
+							  "net.mkd.Ganymede",
+							  G_BUS_NAME_OWNER_FLAGS_NONE,
+							  on_bus_acquired,
+							  on_name_acquired,
+							  on_name_lost,
+							  this,
+							  NULL);
+}
+
+GDBusNodeInfo* DBusServer::GetIntrospectionData() {
+	return _introspectionData;
+}
+
+DBusServer::TileCallbackFunction DBusServer::tileCallback() const {
+	return _tileCallback;
+}
+
+void DBusServer::tileCallback(TileCallbackFunction function) {
+	_tileCallback = function;
+}
+
+DBusServer::MaximizeCallbackFunction DBusServer::maximizeCallback() const {
+	return _maximizeCallback;
+}
+
+void DBusServer::maximizeCallback(MaximizeCallbackFunction function) {
+	_maximizeCallback = function;
+}
+
+DBusServer::FillCallbackFunction DBusServer::fillCallback() const {
+	return _fillCallback;
+}
+
+void DBusServer::fillCallback(FillCallbackFunction function) {
+	_fillCallback = function;
+}
+
+DBusServer::ExpandCallbackFunction DBusServer::expandCallback() const {
+	return _expandCallback;
+}
+
+void DBusServer::expandCallback(ExpandCallbackFunction function) {
+	_expandCallback = function;
+}
+
+DBusServer::SnapCallbackFunction DBusServer::snapCallback() const {
+	return _snapCallback;
+}
+
+void DBusServer::snapCallback(SnapCallbackFunction function) {
+	_snapCallback = function;
+}
+
+DBusServer::MoveCallbackFunction DBusServer::moveCallback() const {
+	return _moveCallback;
+}
+
+void DBusServer::moveCallback(MoveCallbackFunction function) {
+	_moveCallback = function;
+}
+
+DBusServer::HideCallbackFunction DBusServer::hideCallback() const {
+	return _hideCallback;
+}
+
+void DBusServer::hideCallback(HideCallbackFunction function) {
+	_hideCallback = function;
+}
+
+DBusServer::FullscreenCallbackFunction DBusServer::fullscreenCallback() const {
+	return _fullscreenCallback;
+}
+
+void DBusServer::fullscreenCallback(FullscreenCallbackFunction function) {
+	_fullscreenCallback = function;
+}
+
+DBusServer::ShowDesktopCallbackFunction DBusServer::showDesktopCallback() const {
+	return _showDesktopCallback;
+}
+
+void DBusServer::showDesktopCallback(ShowDesktopCallbackFunction function) {
+	_showDesktopCallback = function;
+}
+
+DBusServer::DebugCallbackFunction DBusServer::debugCallback() const {
+	return _debugCallback;
+}
+
+void DBusServer::debugCallback(DebugCallbackFunction function) {
+	_debugCallback = function;
+}

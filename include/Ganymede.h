@@ -8,7 +8,7 @@
 #include <libwnck/libwnck.h>
 
 #include "DBusServer.h"
-#include "WindowController.h"
+#include "WindowManager.h"
 
 //struct WnckScreen;
 //struct WnckWindow;
@@ -17,7 +17,7 @@
 namespace ganymede {
 
 
-	//class WindowController;
+	//class WindowManager;
 
 
 	class Ganymede {
@@ -28,7 +28,7 @@ namespace ganymede {
 
 		int start(int argc, char **argv);
 
-		WindowController& getSplitManager();
+		WindowManager& getSplitManager();
 		bool isMainLoopRunning();
 
 	protected:
@@ -56,11 +56,21 @@ namespace ganymede {
 		static void debugPrintApplicationInfo(WnckApplication* application); // should be const
 		static void debugPrintWindowInfo(WnckWindow* window); // should be const
 
-		std::chrono::system_clock::time_point _startTime;
 		GMainLoop *_mainLoop;
 
 		std::unique_ptr<DBusServer>	_dbusServer;
-		std::unique_ptr<WindowController> _windowController;
+		std::unique_ptr<WindowManager> _windowManager;
+
+		void OnDBusServerTileCallback(DBusServer& dbusServer,
+									  unsigned widthDivision,
+									  unsigned xDivision,
+									  unsigned xOffset,
+									  unsigned heightDivision,
+									  unsigned yDivision,
+									  unsigned yOffset);
+//		void OnDBusServerMaximizeCallback(DBusServer& dbusServer,
+//										  POSITIONAL_FLAG flags);
+
 	};
 }
 
