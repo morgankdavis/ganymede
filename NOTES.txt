@@ -11,7 +11,7 @@ Ganymede
         	Y offset)
         	-> ability to override final output rect for special cases (FF)
 				(put in text file?)
-		Move center, left, right, up, down (?)
+		Snap (center, up, down, left, right, //corners)
 		WM max vert
 		WM max horiz
 		WM max
@@ -22,7 +22,6 @@ Ganymede
 		Expand horiz, vert, up, down, left, right
 		Move up, down, left, right
 		WM toggle boarder?
-		Snap (up, down, left, right, //corners)
 		Hide
 		Toggle show desktop
 	WORKSPACES
@@ -34,4 +33,11 @@ Ganymede
     
 Setup Thunar keyboard shortcuts
 
+
+
+Width, height, x offset, y offset need to be described in multiples
+
+option #1: add 4 new integer components, one after <size>, one after <offset> to describe a multiple
+option #2: describe sizes as float percentages
+float width, float x offset, int x offset index, float height, float y offset, int y offset index
 

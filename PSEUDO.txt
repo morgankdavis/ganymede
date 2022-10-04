@@ -19,9 +19,9 @@ move(FLAGS, int units) {}
 
 hide() {}
 
-toggleFullscreen() {}
+fullscreen() {}
 
-toggleDeskop() {}
+showDeskop() {}
 
 
 

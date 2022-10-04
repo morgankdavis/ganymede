@@ -6,6 +6,8 @@
 
 #include <math.h>
 
+#include <X11/Xatom.h>
+
 
 // documentation: https://developer-old.gnome.org/libwnck/stable/core.html
 
@@ -14,7 +16,75 @@ using namespace ganymede;
 using namespace std;
 
 
-WindowManager::WindowManager() {}
+typedef struct {
+	int x;
+	int y;
+	int width;
+	int height;
+} Rect;
+
+typedef struct {
+	unsigned long left;
+	unsigned long right;
+	unsigned long top;
+	unsigned long bottom;
+} Extents;
+
+
+void GetWindowCSDExtents(Display& display, WnckWindow& window, Extents** extents) {
+
+	auto decorationExtents = (Extents*)malloc(sizeof(Extents));
+	memset(decorationExtents, 0, sizeof(Extents));
+
+	unsigned long *cardinals_p;
+	int n_cardinals_p;
+	Atom type;
+	int format;
+	unsigned int i;
+	unsigned long n_cardinals;
+	unsigned long bytes_after;
+	unsigned char *propertyData;
+	// TRY THIS: https://gitlab.xfce.org/xfce/xfce4-panel/-/blob/1a202bf2961db5c2481fbf9fe851aa15ed13dfc3/panel/panel-window.c#L2485
+	Atom gtkFrameExtentAtom = XInternAtom(&display, "_GTK_FRAME_EXTENTS", false);
+	int status = XGetWindowProperty(&display, wnck_window_get_xid(&window),
+									gtkFrameExtentAtom,
+									0, G_MAXLONG,
+									FALSE,
+									XA_CARDINAL,
+									&type, &format,
+									&n_cardinals, &bytes_after,
+									(unsigned char **)&propertyData);
+
+	if ((status == Success) && (propertyData != NULL) && (type != None)) {
+
+		unsigned auto cardinals = (unsigned long*)propertyData;
+
+		for (int i=0; i<n_cardinals; ++i) {
+//			unsigned long item = cardinals[i] & ((1LL << format) - 1);
+//			printf("d[%d]: %d\n", i, item);
+
+			((unsigned long*)(decorationExtents))[i] = cardinals[i] & ((1LL << format) - 1);
+		}
+	}
+	else {
+		printf("*** Couldn't get _GTK_FRAME_EXTENTS atom ***\n");
+	}
+
+	XFree(propertyData);
+
+	*extents = decorationExtents;
+}
+
+WindowManager::WindowManager() {
+	_xDisplay = XOpenDisplay(NULL);
+//	if (_xDisplay == NULL){
+//		printf("fail\n");
+//		exit(1);
+//	}
+//	else {
+//		printf("success\n");
+//	}
+}
 
 void WindowManager::tile(WnckScreen& screen,
 						 WnckWindow& window,
@@ -24,30 +94,21 @@ void WindowManager::tile(WnckScreen& screen,
 						 unsigned heightDivision,
 						 unsigned yDivision,
 						 unsigned yOffset) {
-	printf("WindowManager::tile(\nwidthDivision: %u\nxDivision: %u\nxOffset: %u\nheightDivision: %u\nyDivision: %u\nyOffset: %u)\n",
+
+	printf("WindowManager::tile(\nwidthDivision: %u\nxDmanasdasdivision: %u\nxOffset: \""
+		   "%u\nheightDivision: %u\nyDivision: %u\nyOffset: %u)\n",
 		   widthDivision, xDivision, xOffset, heightDivision, yDivision, yOffset);
 
+	static const int PANEL_HEIGHT = 24;
+	Rect boundingRect = {
+			0, 0,
+			wnck_screen_get_width(&screen), wnck_screen_get_height(&screen)-PANEL_HEIGHT };
 
-	int clientActiveX, clientActiveY, clientActiveWidth, clientActiveHeight;
-	wnck_window_get_client_window_geometry(&window, &clientActiveX, &clientActiveY, &clientActiveWidth, &clientActiveHeight);
-	printf("[CLIENT ACTIVE]\nclientActiveX: %d\nclientActiveY: %d\nclientActiveWidth: %d\nclientActiveHeight: %d\n",
-		   clientActiveX, clientActiveY, clientActiveWidth, clientActiveHeight);
-
-
-	int activeX, activeY, activeWidth, activeHeight;
-	wnck_window_get_geometry(&window, &activeX, &activeY, &activeWidth, &activeHeight);
-	printf("[ACTIVE]\nactiveX: %d\nactiveY: %d\nactiveWidth: %d\nactiveHeight: %d\n",
-		   activeX, activeY, activeWidth, activeHeight);
-
-
-
-
-
-
-
-
-	// temporary
-	GdkRectangle boundingRect = {0, 0, 1920, 1200-24};
+	Extents* csdExtents;
+	GetWindowCSDExtents(*_xDisplay, window, &csdExtents);
+	printf("[csdExtents]\nleft: %d\nright: %d\ntop: %d\nbottom: %d\n",
+		   csdExtents->left, csdExtents->right,
+		   csdExtents->top, csdExtents->bottom);
 
 	float width = (float)boundingRect.width / (float)widthDivision;
 	float xColumnSize = (float)boundingRect.width / (float)xDivision;
@@ -57,26 +118,31 @@ void WindowManager::tile(WnckScreen& screen,
 	float yColumnSize = (float)boundingRect.height / (float)yDivision;
 	float yPosition = (yColumnSize * (float)yOffset) + (float)boundingRect.y;
 
-	// if the bottom or right edges of the window are next to the screen edge, round them so they line up nicely.
-//	if (((xPosition + width) - (float)(boundingRect.x + boundingRect.width)) < 0.5f) {
-//		printf("*** RIGHT-EDGE GAP ***\n");
-//		width += 0.5f;
-//	}
-//	if (((yPosition + height) - (float)(boundingRect.y + boundingRect.height)) < 0.5f) {
-//		printf("*** BOTTOM-EDGE GAP ***\n");
-//		height += 0.5f;
-//	}
+	Rect rectWithDecorations {
+			(int)round(xPosition),
+			(int)round(yPosition),
+			(int)round(width),
+			(int)round(height),
+	};
+
+	printf("[rectWithDecorations]\nx: %d\ny: %d\nw: %d\nh: %d\n",
+		   rectWithDecorations.x, rectWithDecorations.y,
+		   rectWithDecorations.width, rectWithDecorations.height);
+
+	Rect csdAdjustedRect {
+			rectWithDecorations.x + boundingRect.x - (int)csdExtents->left,
+			rectWithDecorations.y + boundingRect.y - (int)csdExtents->top,
+			rectWithDecorations.width + (int)csdExtents->left + (int)csdExtents->right,
+			rectWithDecorations.height + (int)csdExtents->top + (int)csdExtents->bottom
+	};
+
+	Rect finalRect = csdAdjustedRect;
+
+	printf("[finalRect]\nx: %d\ny: %d\nw: %d\nh: %d\n",
+		   finalRect.x, finalRect.y, finalRect.width, finalRect.height);
 
 	if (wnck_window_is_fullscreen(&window)) wnck_window_set_fullscreen(&window, false);
 	if (wnck_window_is_maximized(&window)) wnck_window_unmaximize(&window);
-
-	int finalX = (int)round(xPosition);
-	int finalY = (int)round(yPosition);
-	int finalWidth = (int)round(width);
-	int finalHeight = (int)round(height);
-
-	printf("[PLACING]\nfinalX: %d\nfinalY: %d\nfinalWidth: %d\nfinalHeight: %d\n",
-		   finalX, finalY, finalWidth, finalHeight);
 
 	wnck_window_set_geometry(&window,
 							 WNCK_WINDOW_GRAVITY_STATIC,
@@ -85,5 +151,7 @@ void WindowManager::tile(WnckScreen& screen,
 									  | WNCK_WINDOW_CHANGE_Y
 									  | WNCK_WINDOW_CHANGE_WIDTH
 									  | WNCK_WINDOW_CHANGE_HEIGHT),
-							 finalX, finalY, finalWidth, finalHeight);
+							 finalRect.x, finalRect.y, finalRect.width, finalRect.height);
+
+	free(csdExtents);
 }

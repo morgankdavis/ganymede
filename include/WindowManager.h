@@ -5,6 +5,7 @@
 #include <memory>
 
 #include <libwnck/libwnck.h>
+#include <X11/Xlib.h>
 
 
 namespace ganymede {
@@ -26,6 +27,7 @@ namespace ganymede {
 				  unsigned yOffset);
 	private:
 
+		Display* 		_xDisplay;
 //		std::shared_ptr<WnckScreen> _screen;
 	};
 }
