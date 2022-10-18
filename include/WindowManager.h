@@ -20,10 +20,14 @@ namespace ganymede {
 		void tile(WnckScreen& screen,
 				  WnckWindow& window,
 				  unsigned widthDivision,
+				  unsigned widthMultiplier,
 				  unsigned xDivision,
+				  unsigned xMultiplier,
 				  unsigned xOffset,
 				  unsigned heightDivision,
+				  unsigned heightMultiplier,
 				  unsigned yDivision,
+				  unsigned yMultiplier,
 				  unsigned yOffset);
 	private:
 

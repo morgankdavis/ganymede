@@ -1,5 +1,6 @@
 
 #include <libwnck/libwnck.h>
+#include <thread>
 
 #include "Ganymede.h"
 
@@ -15,27 +16,91 @@ using namespace ganymede;
 
 void Ganymede::OnDBusServerTileCallback(DBusServer& dbusServer,
 										unsigned widthDivision,
+										unsigned widthMultiplier,
 										unsigned xDivision,
+										unsigned xMultiplier,
 										unsigned xOffset,
 										unsigned heightDivision,
+										unsigned heightMultiplier,
 										unsigned yDivision,
+										unsigned yMultiplier,
 										unsigned yOffset) {
-	printf("OnDBusServerTileCallback(widthDivision: %u\nxDivision: %u\nxOffset: %u\nheightDivision: %u\nyDivision: %u\nyOffset: %u)\n",
-		   widthDivision, xDivision, xOffset, heightDivision, yDivision, yOffset);
+	printf("OnDBusServerTileCallback(\n"
+		   "\twidthDivision: %u\n"
+		   "\twidthMultiplier: %u\n"
+		   "\txDivision: %u\n"
+		   "\txMultiplier: %u\n"
+		   "\txOffset: %u\n"
+		   "\theightDivision: %u\n"
+		   "\theightMultiplier: %u\n"
+		   "\tyDivision: %u\n"
+		   "\tyMultiplier: %u\n"
+		   "\tyOffset: %u)",
+		   widthDivision, widthMultiplier, xDivision, xMultiplier, xOffset,
+		   heightDivision, heightMultiplier, yDivision, yMultiplier, yOffset);
 
-	WnckScreen* screen = wnck_screen_get_default();
-	WnckWindow* activeWin = wnck_screen_get_active_window(screen);
+//	WnckScreen* screen = wnck_screen_get_default();
 
-	_windowManager->tile(*screen,
-						 *activeWin,
-						 widthDivision, xDivision, xOffset,
-						 heightDivision, yDivision, yOffset);
+	WnckScreen* screen = nullptr;
+	WnckWindow* activeWin = nullptr;
+//	do {
+		printf("Attempting to get active window...\n");
+
+		screen = wnck_handle_get_default_screen(_wnckHandle);
+		activeWin = wnck_screen_get_active_window(screen);
+
+//		int width = wnck_screen_get_width(screen);
+//		printf("width: %d", width);
+//
+//		gulong xid = wnck_window_get_xid(activeWin);
+//		printf("xid: %lu", xid);
+//
+//	screen = wnck_handle_get_default_screen(_wnckHandle);
+//	activeWin = wnck_screen_get_active_window(screen);
+
+//if (!activeWin) {
+//	do {
+//		sleep(1);
+//		screen = wnck_handle_get_default_screen(_wnckHandle);
+//		activeWin = wnck_screen_get_active_window(screen);
+//	}
+//	while (activeWin == nullptr);
+//}
+
+	if (activeWin) {
+		_windowManager->tile(*screen,
+							 *activeWin,
+							 widthDivision, widthMultiplier, xDivision, xMultiplier, xOffset,
+							 heightDivision, heightMultiplier, yDivision, yMultiplier, yOffset);
+	}
+else {
+//		std::thread thr(&Ganymede::OnDBusServerTileCallback, this,
+//					  dbusServer,
+//					  widthDivision,
+//					  widthMultiplier,
+//					  xDivision,
+//					  xMultiplier,
+//					  xOffset,
+//					  heightDivision,
+//					  heightMultiplier,
+//					  yDivision,
+//					  yMultiplier,
+//					  yOffset);
+//		thr.join();
+}
+
+
+
 }
 
 Ganymede::Ganymede() {
 
+	_wnckHandle = wnck_handle_new(WNCK_CLIENT_TYPE_APPLICATION);
+
 	_dbusServer = make_unique<DBusServer>();
-	_dbusServer->tileCallback(bind(&Ganymede::OnDBusServerTileCallback, this, _1, _2, _3, _4, _5, _6, _7));
+	_dbusServer->tileCallback(bind(&Ganymede::OnDBusServerTileCallback,
+								   this,
+								   _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11));
 
 	_windowManager = make_unique<WindowManager>();
 }
@@ -65,7 +130,8 @@ void Ganymede::debugPrintWindowInfo(WnckWindow* window) {
 	const char* winName = g_strdup(wnck_window_get_name(window));
 	printf("winName: %s\n", winName);
 
-	const char* winClass = g_strdup(wnck_class_group_get_res_class(wnck_window_get_class_group(window)));
+	const char* winClass = g_strdup(wnck_class_group_get_res_class(
+			wnck_window_get_class_group(window)));
 	printf("winClass: %s\n", winClass);
 
 	// TODO: free strings - put in std::string

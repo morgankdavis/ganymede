@@ -29,10 +29,14 @@ static const gchar introspectionXML[] =
 		"    <method name='Tile'>"
 		"      <annotation name='net.mkd.Annotation' value='OnMethod'/>"
 		"      <arg type='u' name='widthDivision' direction='in'/>"
+		"      <arg type='u' name='widthMultiplier' direction='in'/>"
 		"      <arg type='u' name='xDivision' direction='in'/>"
+		"      <arg type='u' name='xMultiplier' direction='in'/>"
 		"      <arg type='u' name='xOffset' direction='in'/>"
 		"      <arg type='u' name='heightDivision' direction='in'/>"
+		"      <arg type='u' name='heightMultiplier' direction='in'/>"
 		"      <arg type='u' name='yDivision' direction='in'/>"
+		"      <arg type='u' name='yMultiplier' direction='in'/>"
 		"      <arg type='u' name='yOffset' direction='in'/>"
 		"    </method>"
 		"  </interface>"
@@ -121,23 +125,39 @@ static void handle_method_call(GDBusConnection* connection,
 							   GVariant* parameters,
 							   GDBusMethodInvocation* invocation,
 							   gpointer user_data) {
-	printf("handle_method_call()\n");
+	printf("handle_method_call(): %s\n", method_name);
 
 	if (g_strcmp0(method_name, "Tile") == 0) {
+
+
 
 		DBusServer* server = (DBusServer*)user_data;
 
 		GError* local_error;
 
-		guint32 widthDivision, xDivision, xOffset, heightDivision, yDivision, yOffset;
+		guint32 widthDivision, widthMultiplier, xDivision, xMultiplier, xOffset,
+			heightDivision, heightMultiplier, yDivision, yMultiplier, yOffset;
 
-		g_variant_get(parameters, "(uuuuuu)",
-					  &widthDivision, &xDivision, &xOffset, &heightDivision, &yDivision, &yOffset);
-		printf("widthDivision: %u\nxDivision: %u\nxOffset: %u\nheightDivision: %u\nyDivision: %u\nyOffset: %u\n",
-			   widthDivision, xDivision, xOffset, heightDivision, yDivision, yOffset);
+		g_variant_get(parameters, "(uuuuuuuuuu)",
+					  &widthDivision, &widthMultiplier, &xDivision, &xMultiplier, &xOffset,
+					  &heightDivision, &heightMultiplier, &yDivision, &yMultiplier, &yOffset);
+		printf("widthDivision: %u\n"
+			   "widthMultiplier: %u\n"
+			   "xDivision: %u\n"
+			   "xMultiplier: %u\n"
+			   "xOffset: %u\n"
+			   "heightDivision: %u\n"
+			   "heightMultiplier: %u\n"
+			   "yDivision: %u\n"
+			   "yMultiplier: %u\n"
+			   "yOffset: %u\n",
+			   widthDivision, widthMultiplier, xDivision, xMultiplier, xOffset,
+			   heightDivision, heightMultiplier, yDivision, yMultiplier, yOffset);
 
 		if (server->tileCallback()) {
-			(server->tileCallback())(*server, widthDivision, xDivision, xOffset, heightDivision, yDivision, yOffset);
+			(server->tileCallback())(*server,
+					widthDivision, widthMultiplier, xDivision, xMultiplier, xOffset,
+					heightDivision, heightMultiplier, yDivision, yMultiplier, yOffset);
 		}
 
 //		g_variant_get(parameters, "(u)", &widthDivision);
@@ -198,6 +218,8 @@ static void handle_method_call(GDBusConnection* connection,
 	}
 	else if (g_strcmp0(method_name, "DoSomething") == 0) {
 
+		// used for development and debugging
+
 		GError* local_error;
 		gint32 action;
 		gchar* actionAsString;
@@ -205,7 +227,9 @@ static void handle_method_call(GDBusConnection* connection,
 		g_variant_get(parameters, "(i)", &action);
 		actionAsString = g_strdup_printf("action: %i\n", action);
 
-		WnckScreen* screen = wnck_screen_get_default();
+		WnckHandle* wnckHandle = wnck_handle_new(WNCK_CLIENT_TYPE_APPLICATION);
+//		WnckScreen* screen = wnck_screen_get_default();
+		WnckScreen* screen = wnck_handle_get_default_screen(wnckHandle);
 		WnckWindow* activeWin = wnck_screen_get_active_window(screen);
 		printf("active win class group: %s\n", wnck_window_get_class_group_name(activeWin));
 

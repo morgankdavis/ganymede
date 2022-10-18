@@ -57,7 +57,7 @@ void GetWindowCSDExtents(Display& display, WnckWindow& window, Extents** extents
 
 	if ((status == Success) && (propertyData != NULL) && (type != None)) {
 
-		unsigned auto cardinals = (unsigned long*)propertyData;
+		auto cardinals = (unsigned long*)propertyData;
 
 		for (int i=0; i<n_cardinals; ++i) {
 //			unsigned long item = cardinals[i] & ((1LL << format) - 1);
@@ -89,33 +89,50 @@ WindowManager::WindowManager() {
 void WindowManager::tile(WnckScreen& screen,
 						 WnckWindow& window,
 						 unsigned widthDivision,
+						 unsigned widthMultiplier,
 						 unsigned xDivision,
+						 unsigned xMultiplier,
 						 unsigned xOffset,
 						 unsigned heightDivision,
+						 unsigned heightMultiplier,
 						 unsigned yDivision,
+						 unsigned yMultiplier,
 						 unsigned yOffset) {
 
-	printf("WindowManager::tile(\nwidthDivision: %u\nxDmanasdasdivision: %u\nxOffset: \""
-		   "%u\nheightDivision: %u\nyDivision: %u\nyOffset: %u)\n",
-		   widthDivision, xDivision, xOffset, heightDivision, yDivision, yOffset);
+	printf("WindowManager::tile(\n"
+		   "\tscreen: %p\n"
+		   "\twindow: %p\n"
+		   "\twidthDivision: %u\n"
+		   "\twidthMultiplier: %u\n"
+		   "\txDivision: %u\n"
+		   "\txMultiplier: %u\n"
+		   "\txOffset: %u\n"
+		   "\theightDivision: %u\n"
+		   "\theightMultiplier: %u\n"
+		   "\tyDivision: %u\n"
+		   "\tyMultiplier: %u\n"
+		   "\tyOffset: %u)",
+		   &screen, &window,
+		   widthDivision, widthMultiplier, xDivision, xMultiplier, xOffset,
+		   heightDivision, heightMultiplier, yDivision, yMultiplier, yOffset);
 
 	static const int PANEL_HEIGHT = 24;
 	Rect boundingRect = {
-			0, 0,
+			0, 0, // PANEL_HEIGHT?
 			wnck_screen_get_width(&screen), wnck_screen_get_height(&screen)-PANEL_HEIGHT };
 
 	Extents* csdExtents;
 	GetWindowCSDExtents(*_xDisplay, window, &csdExtents);
-	printf("[csdExtents]\nleft: %d\nright: %d\ntop: %d\nbottom: %d\n",
+	printf("[csdExtents]\nleft: %lu\nright: %lu\ntop: %lu\nbottom: %lu\n",
 		   csdExtents->left, csdExtents->right,
 		   csdExtents->top, csdExtents->bottom);
 
-	float width = (float)boundingRect.width / (float)widthDivision;
-	float xColumnSize = (float)boundingRect.width / (float)xDivision;
+	float width = ((float)boundingRect.width / (float)widthDivision) * (float)widthMultiplier;
+	float xColumnSize = ((float)boundingRect.width / (float)xDivision) * (float)xMultiplier;
 	float xPosition = (xColumnSize * (float)xOffset) + (float)boundingRect.x;
 
-	float height = (float)boundingRect.height / (float)heightDivision;
-	float yColumnSize = (float)boundingRect.height / (float)yDivision;
+	float height = ((float)boundingRect.height / (float)heightDivision) * (float)heightMultiplier;
+	float yColumnSize = ((float)boundingRect.height / (float)yDivision) * (float)yMultiplier;
 	float yPosition = (yColumnSize * (float)yOffset) + (float)boundingRect.y;
 
 	Rect rectWithDecorations {

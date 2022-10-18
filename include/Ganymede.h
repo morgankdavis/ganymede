@@ -57,16 +57,21 @@ namespace ganymede {
 		static void debugPrintWindowInfo(WnckWindow* window); // should be const
 
 		GMainLoop *_mainLoop;
+		WnckHandle *_wnckHandle;
 
 		std::unique_ptr<DBusServer>	_dbusServer;
 		std::unique_ptr<WindowManager> _windowManager;
 
 		void OnDBusServerTileCallback(DBusServer& dbusServer,
 									  unsigned widthDivision,
+									  unsigned widthMultiplier,
 									  unsigned xDivision,
+									  unsigned xMultiplier,
 									  unsigned xOffset,
 									  unsigned heightDivision,
+									  unsigned heightMultiplier,
 									  unsigned yDivision,
+									  unsigned yMultiplier,
 									  unsigned yOffset);
 //		void OnDBusServerMaximizeCallback(DBusServer& dbusServer,
 //										  POSITIONAL_FLAG flags);

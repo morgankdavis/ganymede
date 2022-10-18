@@ -25,10 +25,14 @@ namespace ganymede {
 
 		using TileCallbackFunction = std::function<void(DBusServer& dbusServer,
 														unsigned widthDivision,
+														unsigned widthMultiplier,
 														unsigned xDivision,
+														unsigned xMultiplier,
 														unsigned xOffset,
 														unsigned heightDivision,
+														unsigned heightMultiplier,
 														unsigned yDivision,
+														unsigned yMultiplier,
 														unsigned yOffset)>;
 		using MaximizeCallbackFunction = std::function<void(DBusServer& dbusServer, POSITIONAL_FLAG flags)>;
 		using FillCallbackFunction = std::function<void(DBusServer& dbusServer, POSITIONAL_FLAG flags)>;
